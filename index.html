@@ -54,7 +54,7 @@
             { storeId: "2", carrier: "zasilkovna", label: "Packeta VM / Z-BOX", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
             { storeId: "2", carrier: "parcelshop", label: "AlzaBox / SPS VM", maxWeight: 9.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
             { storeId: "2", carrier: "spscarrier", label: "Kuriér SPS", maxWeight: 29.5, maxRoll: 1.7, forbidsStrop: true, forbidsLalee: true },
-            { storeId: "2", carrier: "packetahomedelivery", label: "Packeta HD", maxWeight: null, maxRoll: 1.1, forbidsStrop: true, forbidsMolitany: true, forbidsLalee: true },
+            { storeId: "2", carrier: "packetahomedelivery", label: "Packeta HD", maxWeight: 31, maxRoll: 1.1, forbidsStrop: true, forbidsMolitany: true, forbidsLalee: true },
 
             // --- CZ (6) ---
             { storeId: "6", carrier: "zasilkovna", label: "Zásilkovna VM", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
@@ -65,10 +65,10 @@
             { storeId: "6", carrier: "packetahomedelivery", label: "Packeta HD", maxWeight: 31, maxRoll: 1.1, forbidsStrop: true, forbidsMolitany: true, forbidsLalee: true },
 
             // --- IT (9) ---
+            { storeId: "9", carrier: "gls", label: "GLS Courier", maxWeight: 31 },
             { storeId: "9", carrier: "takoyfedexeconomy", label: "FedEx Economy", maxWeight: 15, forbidsStrop: true, forbidsRolls: true, forbidsLalee: true },
             { storeId: "9", carrier: "takoyfedexpriority", label: "FedEx Priority", maxWeight: 15, forbidsStrop: true, forbidsRolls: true, forbidsLalee: true },
             { storeId: "9", carrier: "upspickuppoint", label: "UPS Pickup Point", maxWeight: 3.5, maxRoll: 0.7, forbidsHT: true, forbidsLalee: true },
-            { storeId: "9", carrier: "gls", label: "GLS", maxWeight: 31 },
 
             // --- HU (11) ---
             { storeId: "11", carrier: "zasilkovna", label: "Packeta VM", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
@@ -118,7 +118,9 @@
             { storeId: "17", carrier: "upspickuppoint", label: "UPS Pickup Point", maxWeight: 3.5, maxRoll: 0.7, forbidsHT: true },
 
             // --- SI (18) ---
+            { storeId: "18", carrier: "gls", label: "GLS Courier", maxWeight: 31 },
             { storeId: "18", carrier: "parcelshop", label: "GLS VM", maxWeight: 19.5, maxRoll: 0.4, forbidsHT: true },
+            { storeId: "18", carrier: "upspickuppoint", label: "UPS Pickup Point", maxWeight: 3.5, maxRoll: 0.7, forbidsHT: true },
 
             // --- SE (19) ---
             { storeId: "19", carrier: "ppl", label: "DHL Courier", maxWeight: 31, maxRoll: 0.9, forbidsLalee: true },
@@ -153,7 +155,7 @@
             { storeId: "25", carrier: "gls", label: "GLS", forbidsIfNoSpecialTags: true },
 
             // --- DK (27) ---
-            { storeId: "27", carrier: "gls", label: "GLS", maxWeight: 31.49, forbidsStrop: true, forbidsHT: true },
+            { storeId: "27", carrier: "gls", label: "GLS Courier", maxWeight: 31.49, forbidsStrop: true, forbidsHT: true },
             { storeId: "27", carrier: "ppl", label: "PPL Courier", maxWeight: 29.99, forbidsRolls: true, forbidsStrop: true },
         ];
 
@@ -216,7 +218,7 @@
                                 </div>
                                 <h1 className="text-2xl font-bold tracking-tight">Logistický Dashboard Takoy</h1>
                             </div>
-                            <p className="text-slate-500 font-medium tracking-tight">Prehľad dostupnosti dopravy (18 krajín)</p>
+                            <p className="text-slate-500 font-medium tracking-tight">Kompletný prehľad dostupnosti dopravy (18 krajín)</p>
                         </div>
                         <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
                             <Icon name="globe" size={18} className="text-blue-500" />
@@ -233,7 +235,7 @@
                                 <select 
                                     value={activeStore}
                                     onChange={(e) => setActiveStore(e.target.value)}
-                                    className="w-full p-3 bg-slate-100 border-none rounded-xl font-bold text-sm ring-blue-500 outline-none cursor-pointer"
+                                    className="w-full p-3 bg-slate-100 border-none rounded-xl font-bold text-sm ring-blue-500 outline-none cursor-pointer hover:bg-slate-200 transition-colors"
                                 >
                                     {Object.entries(STORES).map(([id, store]) => (
                                         <option key={id} value={id}>{store.name}</option>
@@ -332,7 +334,7 @@
                                             </div>
                                         );
                                     }) : (
-                                        <div className="p-12 text-center text-slate-400 italic">Pre túto krajinu nie sú definované pravidlá v databáze.</div>
+                                        <div className="p-12 text-center text-slate-400 italic font-medium">Pre túto krajinu nie sú definované pravidlá v databáze.</div>
                                     )}
                                 </div>
                             </div>
@@ -341,7 +343,7 @@
                     
                     <footer className="max-w-7xl mx-auto mt-8 pt-6 border-t border-slate-200">
                         <div className="flex justify-between items-center text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                            <span>Takoy Logistics v1.2</span>
+                            <span>Takoy Logistics v1.3</span>
                             <span>© 2025 Gotana s.r.o.</span>
                         </div>
                     </footer>
