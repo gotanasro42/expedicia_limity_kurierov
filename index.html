@@ -1,384 +1,231 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  Package, Truck, MapPin, Scale, Ruler, AlertCircle, 
-  CheckCircle2, XCircle, Car, Layers, ShoppingBag, Globe
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Takoy Logistický Dashboard</title>
+    <!-- Tailwind CSS pre styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React a Babel pre beh v prehliadači bez buildu -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
 
-const STORES = {
-  "2": { name: "Slovensko (takoy.sk)", countryCode: "SK" },
-  "6": { name: "Česko (takoy.cz)", countryCode: "CZ" },
-  "9": { name: "Taliansko (takoy.it)", countryCode: "IT" },
-  "11": { name: "Maďarsko (takoy.hu)", countryCode: "HU" },
-  "12": { name: "Holandsko (takoy.nl)", countryCode: "NL" },
-  "13": { name: "Nemecko (takoy.de)", countryCode: "DE" },
-  "14": { name: "Francúzsko (takoy.fr)", countryCode: "FR" },
-  "15": { name: "Španielsko (takoy.es)", countryCode: "ES" },
-  "16": { name: "Rumunsko (takoy.ro)", countryCode: "RO" },
-  "17": { name: "International (takoy.com)", countryCode: "INT" },
-  "18": { name: "Slovinsko (takoy.si)", countryCode: "SI" },
-  "19": { name: "Švédsko (takoy.se)", countryCode: "SE" },
-  "20": { name: "Chorvátsko (takoy.hr)", countryCode: "HR" },
-  "21": { name: "Ukrajina (takoy.ua)", countryCode: "UA" },
-  "23": { name: "Bulharsko (takoy.bg)", countryCode: "BG" },
-  "24": { name: "Fínsko (takoy.fi)", countryCode: "FI" },
-  "25": { name: "Poľsko (takoy.pl)", countryCode: "PL" },
-  "27": { name: "Dánsko (takoy.dk)", countryCode: "DK" },
-};
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
 
-const SHIPPING_RULES = [
-  // --- SK (2) ---
-  { storeId: "2", carrier: "zasilkovna", label: "Packeta VM / Z-BOX", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
-  { storeId: "2", carrier: "parcelshop", label: "AlzaBox / SPS VM", maxWeight: 9.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
-  { storeId: "2", carrier: "spscarrier", label: "Kuriér SPS", maxWeight: 29.5, maxRoll: 1.7, forbidsStrop: true, forbidsLalee: true },
-  { storeId: "2", carrier: "packetahomedelivery", label: "Packeta HD", maxWeight: null, maxRoll: 1.1, forbidsStrop: true, forbidsMolitany: true, forbidsLalee: true },
+        // Ikony definujeme manuálne cez Lucide, aby to fungovalo bez importov
+        const Icon = ({ name, size = 20, className = "" }) => {
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [name]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
 
-  // --- CZ (6) ---
-  { storeId: "6", carrier: "zasilkovna", label: "Zásilkovna VM", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
-  { storeId: "6", carrier: "parcelshop", label: "PPL Parcelshop", maxWeight: 9.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
-  { storeId: "6", carrier: "ppl", label: "Kurýr PPL", maxWeight: 31, maxRoll: 1.1, forbidsStrop: true, forbidsMolitany: true, forbidsLalee: true },
-  { storeId: "6", carrier: "balikovna", label: "Balíkovna", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
-  { storeId: "6", carrier: "zasielkovnaextra3", label: "Packeta Extra (2-3kg)", minWeight: 2, maxWeight: 3, forbidsLalee: true },
-  { storeId: "6", carrier: "packetahomedelivery", label: "Packeta HD", maxWeight: 31, maxRoll: 1.1, forbidsStrop: true, forbidsMolitany: true, forbidsLalee: true },
+        const STORES = {
+            "2": { name: "Slovensko (takoy.sk)", countryCode: "SK" },
+            "6": { name: "Česko (takoy.cz)", countryCode: "CZ" },
+            "9": { name: "Taliansko (takoy.it)", countryCode: "IT" },
+            "11": { name: "Maďarsko (takoy.hu)", countryCode: "HU" },
+            "12": { name: "Holandsko (takoy.nl)", countryCode: "NL" },
+            "13": { name: "Nemecko (takoy.de)", countryCode: "DE" },
+            "14": { name: "Francúzsko (takoy.fr)", countryCode: "FR" },
+            "15": { name: "Španielsko (takoy.es)", countryCode: "ES" },
+            "16": { name: "Rumunsko (takoy.ro)", countryCode: "RO" },
+            "17": { name: "International (takoy.com)", countryCode: "INT" },
+            "18": { name: "Slovinsko (takoy.si)", countryCode: "SI" },
+            "19": { name: "Švédsko (takoy.se)", countryCode: "SE" },
+            "20": { name: "Chorvátsko (takoy.hr)", countryCode: "HR" },
+            "21": { name: "Ukrajina (takoy.ua)", countryCode: "UA" },
+            "23": { name: "Bulharsko (takoy.bg)", countryCode: "BG" },
+            "24": { name: "Fínsko (takoy.fi)", countryCode: "FI" },
+            "25": { name: "Poľsko (takoy.pl)", countryCode: "PL" },
+            "27": { name: "Dánsko (takoy.dk)", countryCode: "DK" },
+        };
 
-  // --- IT (9) ---
-  { storeId: "9", carrier: "takoyfedexeconomy", label: "FedEx Economy", maxWeight: 15, forbidsStrop: true, forbidsRolls: true, forbidsLalee: true },
-  { storeId: "9", carrier: "takoyfedexpriority", label: "FedEx Priority", maxWeight: 15, forbidsStrop: true, forbidsRolls: true, forbidsLalee: true },
-  { storeId: "9", carrier: "upspickuppoint", label: "UPS Pickup Point", maxWeight: 3.5, maxRoll: 0.7, forbidsHT: true, forbidsLalee: true },
+        const SHIPPING_RULES = [
+            // SK (2)
+            { storeId: "2", carrier: "zasilkovna", label: "Packeta VM / Z-BOX", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
+            { storeId: "2", carrier: "parcelshop", label: "AlzaBox / SPS VM", maxWeight: 9.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
+            { storeId: "2", carrier: "spscarrier", label: "Kuriér SPS", maxWeight: 29.5, maxRoll: 1.7, forbidsStrop: true, forbidsLalee: true },
+            { storeId: "2", carrier: "packetahomedelivery", label: "Packeta HD", maxWeight: null, maxRoll: 1.1, forbidsStrop: true, forbidsMolitany: true, forbidsLalee: true },
+            // CZ (6)
+            { storeId: "6", carrier: "zasilkovna", label: "Zásilkovna VM", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
+            { storeId: "6", carrier: "parcelshop", label: "PPL Parcelshop", maxWeight: 9.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
+            { storeId: "6", carrier: "ppl", label: "Kurýr PPL", maxWeight: 31, maxRoll: 1.1, forbidsStrop: true, forbidsMolitany: true, forbidsLalee: true },
+            { storeId: "6", carrier: "balikovna", label: "Balíkovna", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
+            { storeId: "6", carrier: "zasielkovnaextra3", label: "Packeta Extra (2-3kg)", minWeight: 2, maxWeight: 3, forbidsLalee: true },
+            { storeId: "6", carrier: "packetahomedelivery", label: "Packeta HD", maxWeight: 31, maxRoll: 1.1, forbidsStrop: true, forbidsMolitany: true, forbidsLalee: true },
+            // DE (13)
+            { storeId: "13", carrier: "ppl", label: "DHL Courier", maxWeight: 4.5, maxRoll: 0.9, forbidsLalee: true },
+            { storeId: "13", carrier: "parcelshop", label: "Hermes VM", maxWeight: 9.5, maxRoll: 0.6, forbidsHT: true, forbidsLalee: true },
+            { storeId: "13", carrier: "takoyfedexeconomy", label: "FedEx Economy", maxWeight: 10, forbidsMolitany: true, forbidsStrop: true, forbidsLalee: true },
+            // PL (25)
+            { storeId: "25", carrier: "zasilkovna", label: "Packeta VM", maxWeight: 4.99, forbidsRolls: true, forbidsHT: true, forbidsLalee: true },
+            { storeId: "25", carrier: "inposthd", label: "InPost HD", maxWeight: 23.99, forbidsRolls: true, forbidsLalee: true },
+            { storeId: "25", carrier: "gls", label: "GLS", forbidsIfNoSpecialTags: true },
+            // Pridaj sem ostatné pravidlá podľa potreby...
+        ];
 
-  // --- HU (11) ---
-  { storeId: "11", carrier: "zasilkovna", label: "Packeta VM", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
-  { storeId: "11", carrier: "expressone", label: "Express One VM", maxWeight: 4.5, maxRoll: 0.4, forbidsHT: true, forbidsLalee: true },
-  { storeId: "11", carrier: "parcelshop", label: "GLS VM", maxWeight: 19.5, maxRoll: 0.4, forbidsHT: true, forbidsLalee: true },
-  { storeId: "11", carrier: "spscarrier", label: "Express One / SPS Courier", maxWeight: 29.5, maxRoll: 1.1, forbidsStrop: true, forbidsHT: true, forbidsLalee: true },
+        const App = () => {
+            const [activeStore, setActiveStore] = useState("2");
+            const [weight, setWeight] = useState(1);
+            const [rollLength, setRollLength] = useState(0);
+            const [tags, setTags] = useState({
+                rolkaKontrola: false,
+                rolkaKontrolaHT: false,
+                stropauta: false,
+                molitany: false,
+                kontrolaKoberceLalee: false,
+                vatelin: false
+            });
 
-  // --- NL (12) ---
-  { storeId: "12", carrier: "zasilkovna", label: "DHL VM", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
-  { storeId: "12", carrier: "ppl", label: "DHL Courier", maxWeight: 31, maxRoll: 0.9, forbidsLalee: true },
-  { storeId: "12", carrier: "takoyfedexeconomy", label: "FedEx Economy", maxWeight: 10, forbidsStrop: true, forbidsLalee: true },
-  { storeId: "12", carrier: "takoyfedexpriority", label: "FedEx Priority", maxWeight: 10, forbidsStrop: true, forbidsLalee: true },
-  { storeId: "12", carrier: "upspickuppoint", label: "UPS Pickup Point", maxWeight: 3.5, maxRoll: 0.7, forbidsHT: true, forbidsLalee: true },
+            const toggleTag = (tag) => setTags(prev => ({ ...prev, [tag]: !prev[tag] }));
 
-  // --- DE (13) ---
-  { storeId: "13", carrier: "ppl", label: "DHL Courier", maxWeight: 4.5, maxRoll: 0.9, forbidsLalee: true },
-  { storeId: "13", carrier: "parcelshop", label: "Hermes VM", maxWeight: 9.5, maxRoll: 0.6, forbidsHT: true, forbidsLalee: true },
-  { storeId: "13", carrier: "zasilkovna", label: "Hermes VM (Alternative)", maxWeight: 9.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
-  { storeId: "13", carrier: "zasielkovnaextra", label: "DPD HD", maxWeight: 9.5, maxRoll: 0.6, forbidsLalee: true },
-  { storeId: "13", carrier: "takoyfedexeconomy", label: "FedEx Economy", maxWeight: 10, forbidsMolitany: true, forbidsStrop: true, forbidsLalee: true },
-  { storeId: "13", carrier: "takoyfedexpriority", label: "FedEx Priority", maxWeight: 10, forbidsMolitany: true, forbidsStrop: true, forbidsRolls: true, forbidsLalee: true },
-  { storeId: "13", carrier: "upspickuppoint", label: "UPS Pickup Point", maxWeight: 3.5, maxRoll: 0.7, forbidsHT: true, forbidsLalee: true },
+            const checkCarrier = (rule) => {
+                let reasons = [];
+                if (rule.maxWeight && weight > rule.maxWeight) reasons.push(`Váha ${weight}kg > ${rule.maxWeight}kg`);
+                if (rule.minWeight && weight <= rule.minWeight) reasons.push(`Váha ${weight}kg <= ${rule.minWeight}kg`);
+                if (tags.rolkaKontrola) {
+                    if (rule.forbidsRolls) reasons.push("Tento dopravca neprijíma rolky");
+                    else if (rule.maxRoll && rollLength > rule.maxRoll) reasons.push(`Rolka ${rollLength}m > ${rule.maxRoll}m`);
+                }
+                if (tags.rolkaKontrolaHT && rule.forbidsHT) reasons.push("Zakázané pre HT rolky");
+                if (tags.stropauta && rule.forbidsStrop) reasons.push("Zakázané pre stropnice áut");
+                if (tags.molitany && rule.forbidsMolitany) reasons.push("Zakázané pre molitany");
+                if (tags.kontrolaKoberceLalee && rule.forbidsLalee) reasons.push("Zakázané pre koberce Lalee");
+                if (tags.vatelin && rule.forbidsVatelin) reasons.push("Zakázané pre vatelín");
+                if (rule.forbidsIfNoSpecialTags && !tags.kontrolaKoberceLalee && !tags.rolkaKontrola && !tags.stropauta) reasons.push("GLS vyžaduje aspoň jeden špecifický tag");
+                return { allowed: reasons.length === 0, reasons };
+            };
 
-  // --- FR (14) ---
-  { storeId: "14", carrier: "zasielkovnaextra", label: "Colis Privé HD", maxWeight: 31, maxRoll: 0.9, forbidsVatelin: true, forbidsLalee: true },
-  { storeId: "14", carrier: "ppl", label: "Colis Privé HD (via PPL)", maxWeight: 31, maxRoll: 0.9, forbidsVatelin: true, forbidsLalee: true },
-  { storeId: "14", carrier: "upspickuppoint", label: "UPS Pickup Point", maxWeight: 3.5, maxRoll: 0.7, forbidsVatelin: true, forbidsHT: true, forbidsLalee: true },
-  { storeId: "14", carrier: "zasielkovnaextra2", label: "Colissimo HD", maxWeight: 1.8, maxRoll: 0.3, forbidsVatelin: true, forbidsLalee: true },
-  { storeId: "14", carrier: "zasilkovna", label: "Colissimo/Mondial Relay VM", maxWeight: 1.8, maxRoll: 0.3, forbidsVatelin: true, forbidsHT: true, forbidsLalee: true },
-  { storeId: "14", carrier: "takoyfedexeconomy", label: "FedEx Economy", maxWeight: 10, forbidsMolitany: true, forbidsStrop: true, forbidsVatelin: true, forbidsLalee: true },
+            const currentRules = useMemo(() => SHIPPING_RULES.filter(r => r.storeId === activeStore), [activeStore]);
 
-  // --- ES (15) ---
-  { storeId: "15", carrier: "upspickuppoint", label: "UPS Pickup Point", maxWeight: 3.5, maxRoll: 0.7, forbidsHT: true, forbidsLalee: true },
-  { storeId: "15", carrier: "customshipping", label: "Tipsa Delivery", maxWeight: 24.5, maxRoll: 1.4, forbidsLalee: true },
-  { storeId: "15", carrier: "gls", label: "GLS", forbidsSpecificCombo: true }, 
-  { storeId: "15", carrier: "takoyfedexeconomy", label: "FedEx Economy", maxWeight: 10, forbidsStrop: true, forbidsLalee: true, forbidsRolls: true },
-  { storeId: "15", carrier: "takoyfedexpriority", label: "FedEx Priority", maxWeight: 10, forbidsStrop: true, forbidsLalee: true, forbidsRolls: true },
-
-  // --- RO (16) ---
-  { storeId: "16", carrier: "zasilkovna", label: "Coletăria VM", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
-  { storeId: "16", carrier: "takoyfancourier", label: "Fan Courier", forbidsLalee: true, maxWeight: 25 },
-
-  // --- COM (17) ---
-  { storeId: "17", carrier: "parcelshop", label: "AlzaBox/SPS VM", maxWeight: 9.5, maxRoll: 0.5, forbidsHT: true },
-  { storeId: "17", carrier: "customshipping", label: "Tipsa Delivery", maxWeight: 24.5, maxRoll: 1.4 },
-  { storeId: "17", carrier: "ppl", label: "PPL / DHL", maxWeight: 4.5, maxRoll: 0.9 },
-  { storeId: "17", carrier: "zasilkovna", label: "Packeta VM", maxWeight: 9.5, maxRoll: 0.5, forbidsHT: true },
-  { storeId: "17", carrier: "zasielkovnaextra", label: "DPD HD", maxWeight: 9.5, maxRoll: 0.6 },
-  { storeId: "17", carrier: "upspickuppoint", label: "UPS Pickup Point", maxWeight: 3.5, maxRoll: 0.7, forbidsHT: true },
-
-  // --- SI (18) ---
-  { storeId: "18", carrier: "parcelshop", label: "GLS VM", maxWeight: 19.5, maxRoll: 0.4, forbidsHT: true },
-
-  // --- SE (19) ---
-  { storeId: "19", carrier: "ppl", label: "DHL Courier", maxWeight: 31, maxRoll: 0.9, forbidsLalee: true },
-  { storeId: "19", carrier: "zasilkovna", label: "PostNord VM", maxWeight: 4.5, maxRoll: 0.5, forbidsHT: true, forbidsLalee: true },
-  { storeId: "19", carrier: "zasielkovnaextra", label: "PostNord HD", maxWeight: 31, minRoll: 0.901, forbidsLalee: true },
-  { storeId: "19", carrier: "takoyfedexeconomy", label: "FedEx Economy", maxWeight: 10, forbidsRolls: true, forbidsHT: true, forbidsStrop: true, forbidsLalee: true },
-  { storeId: "19", carrier: "takoyfedexpriority", label: "FedEx Priority", maxWeight: 10, forbidsRolls: true, forbidsHT: true, forbidsStrop: true, forbidsLalee: true },
-  { storeId: "19", carrier: "gls", label: "GLS", forbidsIfNoSpecialTags: true },
-  { storeId: "19", carrier: "upspickuppoint", label: "UPS Pickup Point", maxWeight: 3.5, maxRoll: 0.7, forbidsHT: true, forbidsLalee: true },
-
-  // --- HR (20) ---
-  { storeId: "20", carrier: "parcelshop", label: "Parcelshop", maxWeight: 19.49, maxRoll: 0.4, forbidsHT: true },
-  { storeId: "20", carrier: "zasilkovna", label: "Packeta VM", maxWeight: 13.99, forbidsRolls: true, forbidsHT: true },
-  { storeId: "20", carrier: "packetahomedelivery", label: "Packeta HD", maxWeight: 4.99, forbidsRolls: true, forbidsStrop: true },
-
-  // --- UA (21) ---
-  { storeId: "21", carrier: "packetahomedelivery", label: "Packeta HD", maxWeight: 4.99, forbidsRolls: true, forbidsStrop: true },
-
-  // --- BG (23) ---
-  { storeId: "23", carrier: "zasilkovna", label: "Packeta VM", maxWeight: 14.99, forbidsRolls: true, forbidsStrop: true, forbidsHT: true },
-  { storeId: "23", carrier: "packetahomedelivery", label: "Packeta HD", maxWeight: 14.99, forbidsRolls: true },
-
-  // --- FI (24) ---
-  { storeId: "24", carrier: "gls", label: "GLS", onlyIfRoll: true },
-  { storeId: "24", carrier: "takoyfedexeconomy", label: "FedEx Economy", forbidsRolls: true },
-  { storeId: "24", carrier: "takoyfedexpriority", label: "FedEx Priority", forbidsRolls: true },
-  { storeId: "24", carrier: "ppl", label: "PPL Courier", maxRoll: 0.9, needsRollCheck: true },
-  { storeId: "24", carrier: "upspickuppoint", label: "UPS Pickup Point", maxWeight: 3.5, maxRoll: 0.7, forbidsHT: true },
-
-  // --- PL (25) ---
-  { storeId: "25", carrier: "zasilkovna", label: "Packeta VM", maxWeight: 4.99, forbidsRolls: true, forbidsHT: true, forbidsLalee: true },
-  { storeId: "25", carrier: "inposthd", label: "InPost HD", maxWeight: 23.99, forbidsRolls: true, forbidsLalee: true },
-  { storeId: "25", carrier: "dpd", label: "DPD", forbidsLalee: true },
-  { storeId: "25", carrier: "gls", label: "GLS", forbidsIfNoSpecialTags: true },
-
-  // --- DK (27) ---
-  { storeId: "27", carrier: "gls", label: "GLS", maxWeight: 31.49, forbidsStrop: true, forbidsHT: true },
-  { storeId: "27", carrier: "ppl", label: "PPL Courier", maxWeight: 29.99, forbidsStrop: true, forbidsRolls: true }
-];
-
-const App = () => {
-  const [activeStore, setActiveStore] = useState("2");
-  const [weight, setWeight] = useState(1);
-  const [rollLength, setRollLength] = useState(0);
-  
-  const [tags, setTags] = useState({
-    rolkaKontrola: false,
-    rolkaKontrolaHT: false,
-    stropauta: false,
-    molitany: false,
-    kontrolaKoberceLalee: false,
-    vatelin: false
-  });
-
-  const toggleTag = (tag) => setTags(prev => ({ ...prev, [tag]: !prev[tag] }));
-
-  const checkCarrier = (rule) => {
-    let reasons = [];
-
-    // Základná Váha
-    if (rule.maxWeight && weight > rule.maxWeight) reasons.push(`Váha ${weight}kg > ${rule.maxWeight}kg`);
-    if (rule.minWeight && weight <= rule.minWeight) reasons.push(`Váha ${weight}kg <= ${rule.minWeight}kg`);
-
-    // Rolky
-    if (tags.rolkaKontrola) {
-      if (rule.forbidsRolls) reasons.push("Tento dopravca neprijíma rolky");
-      else if (rule.maxRoll && rollLength > rule.maxRoll) reasons.push(`Rolka ${rollLength}m > ${rule.maxRoll}m`);
-      else if (rule.minRoll && rollLength <= rule.minRoll) reasons.push(`Rolka musí byť viac ako ${rule.minRoll}m`);
-    }
-    if (rule.onlyIfRoll && !tags.rolkaKontrola) reasons.push("Iba pre objednávky s rolkou");
-
-    // Špeciálne Tagy
-    if (tags.rolkaKontrolaHT && rule.forbidsHT) reasons.push("Zakázané pre HT rolky");
-    if (tags.stropauta && rule.forbidsStrop) reasons.push("Zakázané pre stropnice áut");
-    if (tags.molitany && rule.forbidsMolitany) reasons.push("Zakázané pre molitany");
-    if (tags.kontrolaKoberceLalee && rule.forbidsLalee) reasons.push("Zakázané pre koberce Lalee");
-    if (tags.vatelin && rule.forbidsVatelin) reasons.push("Zakázané pre vatelín");
-
-    // Komplexná logika (ES/SE/PL GLS)
-    if (rule.forbidsSpecificCombo) {
-      if (weight <= 10 && !tags.rolkaKontrola && !tags.stropauta && !tags.kontrolaKoberceLalee) {
-        reasons.push("Špecifická kombinácia váhy/tagov blokuje GLS");
-      }
-    }
-    if (rule.forbidsIfNoSpecialTags) {
-      if (!tags.kontrolaKoberceLalee && !tags.rolkaKontrola && !tags.stropauta) reasons.push("GLS vyžaduje aspoň jeden špecifický tag");
-    }
-
-    return { allowed: reasons.length === 0, reasons };
-  };
-
-  const currentRules = useMemo(() => {
-    return SHIPPING_RULES.filter(r => r.storeId === activeStore);
-  }, [activeStore]);
-
-  return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
-      <header className="max-w-7xl mx-auto mb-8 border-b pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="bg-blue-600 p-2 rounded-lg text-white">
-              <Package size={28} />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight">Logistický Dashboard Takoy</h1>
-          </div>
-          <p className="text-slate-500 font-medium">Prehľad dostupnosti dopravy podľa Store ID a typu tovaru.</p>
-        </div>
-        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
-           <Globe className="text-blue-500" size={18} />
-           <span className="text-sm font-bold text-slate-700 uppercase tracking-widest">{STORES[activeStore].countryCode} Store</span>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
-        
-        {/* Kontrolný panel */}
-        <section className="lg:col-span-1 space-y-6">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <MapPin size={14} /> E-shop Krajina
-            </h2>
-            <select 
-              value={activeStore}
-              onChange={(e) => setActiveStore(e.target.value)}
-              className="w-full p-3 bg-slate-100 border-none rounded-xl font-bold text-sm ring-blue-500 outline-none"
-            >
-              {Object.entries(STORES).map(([id, store]) => (
-                <option key={id} value={id}>{store.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
-            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-              <Scale size={14} /> Parametre objednávky
-            </h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-slate-600 mb-1 block">Celková váha (kg)</label>
-                <input 
-                  type="number" 
-                  value={weight}
-                  onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-600 mb-1 block">Dĺžka rolky (m)</label>
-                <div className="flex gap-2">
-                  <input 
-                    type="number" 
-                    step="0.1"
-                    disabled={!tags.rolkaKontrola}
-                    value={rollLength}
-                    onChange={(e) => setRollLength(parseFloat(e.target.value) || 0)}
-                    className={`w-full p-3 border rounded-xl font-bold ${tags.rolkaKontrola ? 'bg-slate-50 border-slate-200' : 'bg-slate-100 border-transparent text-slate-300'}`}
-                  />
-                  <button 
-                    onClick={() => toggleTag('rolkaKontrola')}
-                    className={`px-3 rounded-xl font-black text-[10px] uppercase transition-all ${tags.rolkaKontrola ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-200 text-slate-500'}`}
-                  >
-                    Rolka
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <hr className="border-slate-100" />
-
-            <div className="space-y-2">
-              <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                <ShoppingBag size={14} /> Typ tovaru v košíku
-              </h2>
-              <div className="grid grid-cols-1 gap-2">
-                {[
-                  { id: 'rolkaKontrolaHT', label: 'HT Rolka', icon: <Ruler size={12}/> },
-                  { id: 'stropauta', label: 'Stropnica Auta', icon: <Car size={12}/> },
-                  { id: 'molitany', label: 'Molitany', icon: <Layers size={12}/> },
-                  { id: 'vatelin', label: 'Vatelín', icon: <Layers size={12}/> },
-                  { id: 'kontrolaKoberceLalee', label: 'Lalee Koberec', icon: <Package size={12}/> },
-                ].map(tag => (
-                  <button
-                    key={tag.id}
-                    onClick={() => toggleTag(tag.id)}
-                    className={`flex items-center justify-between p-2 rounded-lg text-xs font-bold border transition-all ${tags[tag.id] ? 'bg-amber-50 border-amber-300 text-amber-700 shadow-sm' : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}`}
-                  >
-                    <span className="flex items-center gap-2">{tag.icon}{tag.label}</span>
-                    {tags[tag.id] ? <CheckCircle2 size={14} /> : null}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Výsledky dopravy */}
-        <section className="lg:col-span-3">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h2 className="font-bold text-lg flex items-center gap-2">
-                <Truck className="text-blue-600" />
-                Dostupné možnosti pre {STORES[activeStore].name}
-              </h2>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Prepočet</span>
-            </div>
-
-            <div className="divide-y divide-slate-100">
-              {currentRules.map((rule, idx) => {
-                const status = checkCarrier(rule);
-                return (
-                  <div key={idx} className={`p-6 transition-all duration-200 ${status.allowed ? 'bg-white' : 'bg-slate-50/50'}`}>
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                      <div className="flex gap-4">
-                        <div className={`mt-1 p-3 rounded-xl ${status.allowed ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                          {status.allowed ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
-                        </div>
+            return (
+                <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
+                    <header className="max-w-7xl mx-auto mb-8 border-b pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div>
-                          <div className="flex items-center gap-2">
-                             <h3 className={`font-black text-lg ${status.allowed ? 'text-slate-800' : 'text-slate-400'}`}>{rule.label}</h3>
-                             <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded border border-slate-200 font-mono italic">{rule.carrier}</span>
-                          </div>
-                          
-                          <div className="flex flex-wrap gap-4 mt-2">
-                            <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 uppercase">
-                              <Scale size={12}/> Max: {rule.maxWeight ? `${rule.maxWeight}kg` : 'Bez limitu'}
-                            </span>
-                            <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 uppercase">
-                              <Ruler size={12}/> Max Rolka: {rule.maxRoll ? `${rule.maxRoll}m` : 'Bez limitu'}
-                            </span>
-                          </div>
-                          
-                          {!status.allowed && (
-                            <div className="mt-4 flex flex-col gap-1">
-                              {status.reasons.map((reason, i) => (
-                                <div key={i} className="text-red-600 text-xs flex items-center gap-2 font-bold bg-red-50 p-2 rounded border border-red-100">
-                                  <AlertCircle size={14} /> {reason}
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="bg-blue-600 p-2 rounded-lg text-white">
+                                    <Icon name="package" size={28} />
                                 </div>
-                              ))}
+                                <h1 className="text-2xl font-bold tracking-tight">Logistický Dashboard Takoy</h1>
                             </div>
-                          )}
+                            <p className="text-slate-500 font-medium">Prehľad dostupnosti dopravy (Gotana s.r.o.)</p>
                         </div>
-                      </div>
-                      
-                      <div className={`shrink-0 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${status.allowed ? 'bg-green-600 border-green-700 text-white shadow-lg shadow-green-100' : 'bg-white border-red-200 text-red-400'}`}>
-                        {status.allowed ? 'Povolené' : 'Skryté'}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              {currentRules.length === 0 && (
-                <div className="p-12 text-center text-slate-400 italic">
-                  Pre tento obchod nie sú v databáze dashboardu definované pravidlá.
+                        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
+                            <Icon name="globe" size={18} className="text-blue-500" />
+                            <span className="text-sm font-bold text-slate-700 uppercase tracking-widest">{STORES[activeStore].countryCode} Store</span>
+                        </div>
+                    </header>
+
+                    <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
+                        <section className="lg:col-span-1 space-y-6">
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                                <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Icon name="map-pin" size={14} /> E-shop Krajina
+                                </h2>
+                                <select 
+                                    value={activeStore}
+                                    onChange={(e) => setActiveStore(e.target.value)}
+                                    className="w-full p-3 bg-slate-100 border-none rounded-xl font-bold text-sm ring-blue-500 outline-none"
+                                >
+                                    {Object.entries(STORES).map(([id, store]) => (
+                                        <option key={id} value={id}>{store.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                                <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                    <Icon name="scale" size={14} /> Parametre objednávky
+                                </h2>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-600 mb-1 block">Váha (kg)</label>
+                                        <input type="number" value={weight} onChange={(e) => setWeight(parseFloat(e.target.value) || 0)} className="w-full p-3 bg-slate-50 border rounded-xl font-bold" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-600 mb-1 block">Rolka (m)</label>
+                                        <div className="flex gap-2">
+                                            <input type="number" step="0.1" disabled={!tags.rolkaKontrola} value={rollLength} onChange={(e) => setRollLength(parseFloat(e.target.value) || 0)} className={`w-full p-3 border rounded-xl font-bold ${tags.rolkaKontrola ? 'bg-slate-50 border-slate-200' : 'bg-slate-100 border-transparent text-slate-300'}`} />
+                                            <button onClick={() => toggleTag('rolkaKontrola')} className={`px-3 rounded-xl font-black text-[10px] uppercase transition-all ${tags.rolkaKontrola ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-200 text-slate-500'}`}>Rolka</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr className="border-slate-100" />
+                                <div className="space-y-2">
+                                    <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2"><Icon name="shopping-bag" size={14} /> Typ tovaru</h2>
+                                    {['rolkaKontrolaHT', 'stropauta', 'molitany', 'vatelin', 'kontrolaKoberceLalee'].map(tag => (
+                                        <button key={tag} onClick={() => toggleTag(tag)} className={`flex items-center justify-between p-2 rounded-lg text-xs font-bold border w-full ${tags[tag] ? 'bg-amber-50 border-amber-300 text-amber-700' : 'bg-white border-slate-100 text-slate-400'}`}>
+                                            <span>{tag.replace(/([A-Z])/g, ' $1').replace('rolka Kontrola', '')}</span>
+                                            {tags[tag] && <Icon name="check-circle-2" size={14} />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="lg:col-span-3">
+                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                                <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                                    <h2 className="font-bold text-lg flex items-center gap-2"><Icon name="truck" className="text-blue-600" /> Dostupnosť</h2>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Prepočet</span>
+                                </div>
+                                <div className="divide-y divide-slate-100">
+                                    {currentRules.map((rule, idx) => {
+                                        const status = checkCarrier(rule);
+                                        return (
+                                            <div key={idx} className={`p-6 transition-all ${status.allowed ? 'bg-white' : 'bg-slate-50/50'}`}>
+                                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                                    <div className="flex gap-4">
+                                                        <div className={`mt-1 p-3 rounded-xl ${status.allowed ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                                            {status.allowed ? <Icon name="check-circle-2" size={24} /> : <Icon name="x-circle" size={24} />}
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <h3 className={`font-black text-lg ${status.allowed ? 'text-slate-800' : 'text-slate-400'}`}>{rule.label}</h3>
+                                                                <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded border border-slate-200 font-mono italic">{rule.carrier}</span>
+                                                            </div>
+                                                            <div className="flex flex-wrap gap-4 mt-2">
+                                                                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 uppercase"><Icon name="scale" size={12}/> Max: {rule.maxWeight ? `${rule.maxWeight}kg` : 'Bez limitu'}</span>
+                                                                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 uppercase"><Icon name="ruler" size={12}/> Max Rolka: {rule.maxRoll ? `${rule.maxRoll}m` : 'Bez limitu'}</span>
+                                                            </div>
+                                                            {!status.allowed && (
+                                                                <div className="mt-4 flex flex-col gap-1">
+                                                                    {status.reasons.map((reason, i) => (
+                                                                        <div key={i} className="text-red-600 text-xs flex items-center gap-2 font-bold bg-red-50 p-2 rounded border border-red-100">
+                                                                            <Icon name="alert-circle" size={14} /> {reason}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className={`shrink-0 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${status.allowed ? 'bg-green-600 border-green-700 text-white shadow-lg' : 'bg-white border-red-200 text-red-400'}`}>
+                                                        {status.allowed ? 'Povolené' : 'Skryté'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </section>
+                    </main>
                 </div>
-              )}
-            </div>
-          </div>
+            );
+        };
 
-          {/* Business Insights */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="bg-slate-800 p-6 rounded-2xl text-white">
-                <h3 className="font-black text-sm uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-                  <AlertCircle size={16} /> Logistický audit
-                </h3>
-                <p className="text-sm text-slate-300 leading-relaxed italic">
-                  "Pravidlá v PHP kóde sú binárne. Akonáhle objednávka prekročí limit alebo obsahuje zakázaný tag, kuriér sa v košíku zákazníkovi vôbec neponúkne."
-                </p>
-             </div>
-             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <h3 className="font-black text-sm uppercase tracking-widest text-blue-600 mb-4 flex items-center gap-2">
-                  <Truck size={16} /> Operatíva
-                </h3>
-                <p className="text-sm text-slate-600">
-                   Dashboard teraz slúži ako rýchly vyhľadávač pre zákaznícku podporu. Pri otázke 'Prečo nemám Packetu?' stačí zvoliť Store a váhu.
-                </p>
-             </div>
-          </div>
-        </section>
-      </main>
-    </div>
-  );
-};
-
-export default App;
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
